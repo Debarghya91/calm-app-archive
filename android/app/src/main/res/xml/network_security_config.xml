@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTTPS only. The SoulSpace backend must be deployed behind TLS; no
+     cleartext exception is granted to any host. The Capacitor local
+     server (https://localhost) is unaffected: it is served over the
+     app's own https scheme, not cleartext HTTP. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

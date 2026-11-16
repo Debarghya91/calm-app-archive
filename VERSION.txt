@@ -1,0 +1,2 @@
+SoulSpace 0.9.0
+Pre-launch candidate: multilingual companion replies, localised urgent-support copy, user-rated activity personalisation, accessibility and governance improvements.

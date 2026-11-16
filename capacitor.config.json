@@ -1,0 +1,1 @@
+{"appId":"com.soulspace.wellbeing","appName":"SoulSpace","backgroundColor":"#f5f3ef","plugins":{"SplashScreen":{"backgroundColor":"#f5f3ef","launchAutoHide":true,"launchShowDuration":800,"showSpinner":false},"StatusBar":{"overlaysWebView":false}},"server":{"androidScheme":"https"},"webDir":"www"}

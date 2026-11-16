@@ -1,0 +1,8 @@
+.git
+.env
+backend/.env
+backend/*.db*
+node_modules
+android
+ios
+.DS_Store

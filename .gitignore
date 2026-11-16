@@ -1,0 +1,15 @@
+node_modules/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/release-signing.properties
+*.keystore
+*.jks
+.env
+.env.local
+.DS_Store
+ios/App/Pods/
+ios/App/Podfile.lock
+*.db
+backend/soulspace.db

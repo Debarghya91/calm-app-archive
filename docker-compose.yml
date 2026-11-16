@@ -1,0 +1,16 @@
+services:
+  soulspace:
+    build: .
+    container_name: soulspace
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 8787
+      DB_FILE: /data/soulspace.db
+    ports:
+      - "8787:8787"
+    volumes:
+      - soulspace_data:/data
+volumes:
+  soulspace_data:

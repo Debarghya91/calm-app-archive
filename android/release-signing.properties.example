@@ -1,0 +1,10 @@
+# Copy to release-signing.properties (same folder) and fill in your PRODUCTION
+# keystore details. Never commit the filled-in file or the keystore itself.
+# Generate a production keystore once, back it up offline, and keep the same
+# key for every Play release of this app (Play App Signing upload key):
+#   keytool -genkeypair -v -keystore soulspace-release.keystore \
+#     -alias soulspace -keyalg RSA -keysize 2048 -validity 9125
+storeFile=soulspace-release.keystore
+storePassword=CHANGE_ME
+keyAlias=soulspace
+keyPassword=CHANGE_ME
