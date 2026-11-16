@@ -113,3 +113,29 @@ API key in the app; keys live only on the server.
   explicitly not configured; see `BILLING_INTEGRATION_CHECKLIST.md`.
 - The iOS deployment target is 16.0, so iOS 15 and older devices are not
   supported by this build.
+
+## UIScene lifecycle fix (17 Nov 2026)
+
+The Capacitor 6 template ships an AppDelegate-only launch with no scene
+support. Apps built with the iOS 26 SDK (Xcode 26) must adopt the UIScene
+life cycle: on a local iOS 26 simulator run under the Xcode debugger, UIKit
+raised `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`
+("UIScene life cycle is required for apps built with this SDK") and paused
+the app at launch on a black screen. The fix adds a minimal scene
+configuration and leaves all app behaviour unchanged:
+
+- `ios/App/App/SceneDelegate.swift` (new): `UIResponder, UIWindowSceneDelegate`
+  with only `var window: UIWindow?`. The Main storyboard still provides the
+  initial view controller (`CAPBridgeViewController`).
+- `ios/App/App/Info.plist`: `UIApplicationSceneManifest` with one
+  `UIWindowSceneSessionRoleApplication` configuration named "Default
+  Configuration", delegate `$(PRODUCT_MODULE_NAME).SceneDelegate`, storyboard
+  `Main`, multiple scenes disabled.
+- `ios/App/App/AppDelegate.swift`: `application(_:configurationForConnecting:options:)`
+  returning the "Default Configuration" scene configuration.
+- `ios/App/App.xcodeproj/project.pbxproj`: SceneDelegate.swift added to the
+  App group and the target's Sources build phase.
+
+A cloud simulator run without a debugger attached launched and rendered
+before this fix; the debugger pause was the visible symptom on a local Mac.
+After this fix the runtime issue is gone entirely.
