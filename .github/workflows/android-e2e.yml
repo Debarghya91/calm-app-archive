@@ -1,0 +1,105 @@
+name: Android E2E (emulator + Appium)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'e2e/**'
+      - '.github/workflows/android-e2e.yml'
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Same build steps as android-build.yml: no setup-android step,
+      # GitHub ubuntu runners preinstall the Android SDK.
+      - name: Install dependencies and sync Android
+        run: |
+          npm ci
+          npx cap sync android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build debug APK
+        run: cd android && chmod +x gradlew && ./gradlew :app:assembleDebug --no-daemon
+      - name: Install Appium 2 + UiAutomator2 driver
+        run: |
+          npm install -g appium@2
+          appium --version
+          appium driver install uiautomator2
+          appium driver list --installed
+      - name: Install test runner dependencies
+        run: npm install --prefix e2e --no-audit --no-fund webdriverio@9
+      - name: Run E2E on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          avd-name: soulspace-e2e
+          ram-size: 4096M
+          disk-size: 4096M
+          disable-animations: true
+          # No hardware profile is pinned: the action's default device
+          # avoids profile-name mismatches across system images.
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            adb devices
+            echo "Emulator SDK: $(adb shell getprop ro.build.version.sdk)"
+            adb shell dumpsys webviewupdate | head -n 5 || true
+            # Chromedriver autodownload needs the insecure feature flag;
+            # safe here because the runner is ephemeral and trusted.
+            # Default debug log level is kept deliberately so the first
+            # runs are diagnosable from the uploaded log.
+            nohup appium server --port 4723 --allow-insecure=chromedriver_autodownload --log appium.log > appium-server.out 2>&1 &
+            for i in $(seq 1 45); do
+              if curl -sf http://127.0.0.1:4723/status > /dev/null; then
+                echo "Appium server is up"
+                break
+              fi
+              sleep 2
+            done
+            curl -sf http://127.0.0.1:4723/status || { echo "Appium server did not start"; cat appium.log appium-server.out; exit 1; }
+            UDID=emulator-5554 APK_PATH="$PWD/android/app/build/outputs/apk/debug/app-debug.apk" SHOTS=e2e-shots-android REPORT=e2e-report-android.json node e2e/android-appium-test.mjs
+      - name: Upload E2E screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-e2e-screenshots
+          path: e2e-shots-android/
+          if-no-files-found: warn
+      - name: Upload E2E report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-e2e-report
+          path: e2e-report-android.json
+          if-no-files-found: warn
+      - name: Upload Appium logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-e2e-appium-logs
+          path: |
+            appium.log
+            appium-server.out
+          if-no-files-found: warn
+      - name: Upload tested APK
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-e2e-tested-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: warn
