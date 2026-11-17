@@ -64,13 +64,7 @@ jobs:
             # Default debug log level is kept deliberately so the first
             # runs are diagnosable from the uploaded log.
             nohup appium server --port 4723 --allow-insecure=chromedriver_autodownload --log appium.log > appium-server.out 2>&1 &
-            for i in $(seq 1 45); do
-              if curl -sf http://127.0.0.1:4723/status > /dev/null; then
-                echo "Appium server is up"
-                break
-              fi
-              sleep 2
-            done
+            for i in $(seq 1 45); do if curl -sf http://127.0.0.1:4723/status > /dev/null; then echo "Appium server is up"; break; fi; sleep 2; done
             curl -sf http://127.0.0.1:4723/status || { echo "Appium server did not start"; cat appium.log appium-server.out; exit 1; }
             UDID=emulator-5554 APK_PATH="$PWD/android/app/build/outputs/apk/debug/app-debug.apk" SHOTS=e2e-shots-android REPORT=e2e-report-android.json node e2e/android-appium-test.mjs
       - name: Upload E2E screenshots
