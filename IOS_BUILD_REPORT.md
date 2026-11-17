@@ -139,3 +139,20 @@ configuration and leaves all app behaviour unchanged:
 A cloud simulator run without a debugger attached launched and rendered
 before this fix; the debugger pause was the visible symptom on a local Mac.
 After this fix the runtime issue is gone entirely.
+
+## Calm-first UX (17 Nov 2026)
+
+After a real-world test (his wife, anxious, opening the app), the entry
+experience was redesigned: an anxious person does not want to chat or read.
+Changes are web-only (www/js/views.js, www/css/app.css); no native code changed.
+
+- New calm view: full-screen breathing (inhale 4s, hold 4s, exhale 6s, 5
+  breaths, animated orb, two-word phase labels, progress dots), then one
+  question ("A little better?"), then a one-step-at-a-time 5-4-3-2-1
+  grounding flow, then a quiet close. Talking is offered only at the end.
+- Home hero primary button is now "Calm me down" (was "Talk to your
+  companion"); the action grid leads with calm and puts talking last.
+- Tapping Anxious or Low in the mood check-in goes straight to the calm
+  view; the old three-choice dialog is gone.
+- Web QA: 18/18 calm-flow checks and 21/21 full-regression checks pass in
+  headless Chromium, zero console errors. Screenshots verified visually.
