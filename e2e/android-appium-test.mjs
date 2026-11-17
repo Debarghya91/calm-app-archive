@@ -107,6 +107,11 @@ try {
       'appium:ensureWebviewsHavePages': true,
       'appium:adbExecTimeout': 60000,
       'appium:uiautomator2ServerLaunchTimeout': 120000,
+      // The emulator's settings service can lag behind boot_completed on
+      // the slow software-rendered image; tolerate a transient failure of
+      // the hidden-API-policy step instead of failing session creation.
+      // (Driver's own log message recommends this capability.)
+      'appium:ignoreHiddenApiPolicyError': true,
     },
   });
 
