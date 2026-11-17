@@ -6,6 +6,9 @@
   var native = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
   var plugins = (cap && cap.Plugins) || {};
   var App = plugins.App, StatusBar = plugins.StatusBar, SplashScreen = plugins.SplashScreen, Browser = plugins.Browser;
+  // StatusBar.setBackgroundColor is Android-only: on iOS the native bridge
+  // rejects it with UNIMPLEMENTED ("not implemented") on every call.
+  var isAndroid = !!(cap && cap.getPlatform && cap.getPlatform() === 'android');
 
   function isDark(){
     var t = document.documentElement.dataset.theme;
@@ -17,7 +20,7 @@
     if(!native || !StatusBar) return;
     try{
       StatusBar.setStyle({style: isDark() ? 'DARK' : 'LIGHT'}).catch(function(){});
-      StatusBar.setBackgroundColor({color: isDark() ? '#171b19' : '#f5f3ef'}).catch(function(){});
+      if(isAndroid) StatusBar.setBackgroundColor({color: isDark() ? '#171b19' : '#f5f3ef'}).catch(function(){});
     }catch(e){}
   }
   applyStatusBar();
