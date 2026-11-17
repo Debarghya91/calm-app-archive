@@ -106,7 +106,7 @@ try {
       'appium:disableWindowAnimation': true,
       'appium:ensureWebviewsHavePages': true,
       'appium:adbExecTimeout': 60000,
-      'appium:uiautomator2ServerLaunchTimeout': 120000,
+      'appium:uiautomator2ServerLaunchTimeout': 300000,
       // The software-rendered emulator installs APKs slowly: the
       // uiautomator2 server install timed out at the 20000ms default
       // (run 44063297659). Raise it, and the app-install timeout too,
