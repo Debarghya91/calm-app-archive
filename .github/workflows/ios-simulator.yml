@@ -1,9 +1,11 @@
 name: iOS build + E2E (simulator, no signing)
 
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 
 jobs:
   build:
@@ -58,28 +60,33 @@ jobs:
       - name: Warm up Appium session (pre-build WDA)
         run: |
           cat > /tmp/warmup.json <<EOF
-          {"capabilities":{"alwaysMatch":{"platformName":"iOS","appium:automationName":"XCUITest","appium:udid":"$SIM_UDID","appium:app":"$PWD/build/Build/Products/Debug-iphonesimulator/App.app","appium:noReset":false,"appium:skipLogCapture":true}}}
+          {"capabilities":{"alwaysMatch":{"platformName":"iOS","appium:automationName":"XCUITest","appium:udid":"$SIM_UDID","appium:app":"$PWD/build/Build/Products/Debug-iphonesimulator/App.app","appium:noReset":false,"appium:skipLogCapture":true,"appium:simulatorStartupTimeout":300000}}}
           EOF
-          RESP=$(curl -s --max-time 900 -X POST http://127.0.0.1:4723/session -H 'Content-Type: application/json' --data @/tmp/warmup.json || true)
-          SID=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('value',{}).get('sessionId',''))" 2>/dev/null || true)
+          SID=""
+          for ATTEMPT in 1 2 3; do
+            echo "Warm-up attempt $ATTEMPT"
+            RESP=$(curl -s --max-time 900 -X POST http://127.0.0.1:4723/session -H 'Content-Type: application/json' --data @/tmp/warmup.json || true)
+            SID=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('value',{}).get('sessionId',''))" 2>/dev/null || true)
+            if [ -n "$SID" ]; then break; fi
+            echo "Attempt $ATTEMPT got no session; waiting 30s before retry"
+            sleep 30
+          done
           if [ -z "$SID" ]; then echo "Warm-up session failed:"; echo "$RESP" | head -c 2000; exit 1; fi
           echo "Warm-up session $SID created; deleting it"
           curl -s -X DELETE "http://127.0.0.1:4723/session/$SID" > /dev/null
           echo "Warm-up done: WDA pre-built, app pre-installed"
-      - name: Run simulator E2E tests
+      - name: Run E2E tests
         run: |
-          set +e
-          UDID="$SIM_UDID" APP_PATH="$PWD/build/Build/Products/Debug-iphonesimulator/App.app" SHOTS="$PWD/e2e-shots" REPORT="$PWD/e2e-report.json" node e2e/ios-appium-test.mjs
-          CODE=$?
-          mkdir -p e2e-shots
-          touch e2e-report.json appium.log
-          exit $CODE
-      - name: Upload E2E results
+          cd e2e && npx wdio run wdio.ios.conf.ts
+      - name: Upload Appium log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ios-e2e-results
-          path: |
-            e2e-shots/
-            e2e-report.json
-            appium.log
+          name: appium-log
+          path: appium.log
+      - name: Upload E2E logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: e2e/logs
