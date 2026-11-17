@@ -182,12 +182,16 @@ try {
         await driver.switchContext(web);
         webviewContext = web;
         // Wait for the page to finish loading before touching the DOM.
+        // The probe MUST succeed: chromedriver can report a successful
+        // context switch with a null session when the WebView renderer
+        // died ("Render process gone"), and silently proceeding then
+        // kills the run on the first real command.
         const readyEnd = Date.now() + 30000;
         while (Date.now() < readyEnd) {
-          try { if (await evl(`document.readyState`) === 'complete') break; } catch (e) {}
+          try { if (await evl(`document.readyState`) === 'complete') return web; } catch (e) {}
           await sleep(1000);
         }
-        return web;
+        throw new Error('webview session not live after context switch to ' + web + ' (chromedriver session missing; renderer may have died)');
       }
       await sleep(2000);
     }
@@ -206,8 +210,20 @@ try {
   };
   const hideKeyboardBestEffort = async () => { try { await driver.hideKeyboard(); } catch (e) {} };
 
-  await switchToWebview();
-  check('webview context for SoulSpace package appears', webviewContext === WEBVIEW, webviewContext);
+  let switchRecovered = false;
+  try {
+    await switchToWebview();
+  } catch (e) {
+    // One recovery attempt: a dead renderer leaves no live chromedriver
+    // session. Relaunching the app creates a fresh WebView renderer.
+    switchRecovered = true;
+    await driver.switchContext('NATIVE_APP');
+    await driver.terminateApp(PKG);
+    await sleep(1000);
+    await driver.activateApp(PKG);
+    await switchToWebview();
+  }
+  check('webview context for SoulSpace package appears', webviewContext === WEBVIEW, webviewContext + (switchRecovered ? ' (recovered after one relaunch: dead renderer on first switch)' : ''));
   await sleep(2000);
   await installErrorTrap();
 
