@@ -40,6 +40,11 @@ try {
       'appium:newCommandTimeout': 300,
       'appium:wdaLaunchTimeout': 180000,
       'appium:wdaConnectionTimeout': 180000,
+      // iOS 26 webinspectord reports this app as bundleId "process-App"
+      // (the Xcode product name), not com.soulspace.wellbeing, so the
+      // remote debugger never matches the page without this wildcard.
+      'appium:additionalWebviewBundleIds': ['*'],
+      'appium:simulatorStartupTimeout': 300000,
     },
   });
 
