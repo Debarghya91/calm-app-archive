@@ -45,7 +45,7 @@ jobs:
       - name: Run E2E on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 33
           target: default
           arch: x86_64
           avd-name: soulspace-e2e
