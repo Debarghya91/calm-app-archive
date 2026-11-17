@@ -88,7 +88,8 @@ try {
   driver = await remote({
     hostname: '127.0.0.1', port: 4723, path: '/',
     logLevel: 'warn',
-    connectionRetryTimeout: 300000,
+    connectionRetryTimeout: 900000,
+    connectionRetryCount: 5,
     capabilities: {
       platformName: 'Android',
       'appium:automationName': 'UiAutomator2',
