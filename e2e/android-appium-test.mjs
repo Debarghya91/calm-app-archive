@@ -167,7 +167,7 @@ try {
     window.addEventListener('error', e => window.__e2eErrors.push('error: ' + e.message));
     window.addEventListener('unhandledrejection', e => window.__e2eErrors.push('rejection: ' + String((e.reason && e.reason.message) || e.reason)));
     const origErr = console.error.bind(console);
-    console.error = (...a) => { window.__e2eErrors.push('console.error: ' + a.map(String).join(' ')); origErr(...a); };
+    console.error = (...a) => { window.__e2eErrors.push('console.error: ' + a.map(x => { try { if (x instanceof Error) return x.stack || x.message; if (typeof x === 'object' && x !== null) return JSON.stringify(x); return String(x); } catch (e) { return String(x); } }).join(' ')); origErr(...a); };
   });
   const readErrors = () => evl(`(window.__e2eErrors || [])`);
   const switchToWebview = async (timeoutMs = 180000) => {

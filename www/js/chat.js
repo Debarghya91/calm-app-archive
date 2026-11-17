@@ -107,6 +107,11 @@ function offlineReply(t){
  return 'Thank you for telling me. I’m here to listen without judgement. What has felt most difficult about this today?';
 }
 async function ask(x){
+ // No backend configured: never fetch a relative /api/chat against the
+ // app scheme. Capacitor answers unknown paths with index.html (HTTP
+ // 200), which used to surface as a fake AI reply with no offline
+ // disclosure. Fail fast so send() uses the honest offline reply.
+ if(!window.SOULSPACE_API)throw new Error('AI service not configured');
  const source=conversationMessages();
  const history=source.slice(-16).map(m=>({role:m.r==='me'?'user':'assistant',content:m.x}));
  const last=history[history.length-1];

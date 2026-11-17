@@ -3,6 +3,10 @@ const API_BASE=(window.SOULSPACE_API||'').replace(/\/$/,'');
 let TOKEN=null;try{TOKEN=localStorage.getItem('ss_token')}catch(e){}
 let ME=null;let AI_STATUS='Checking connection…';
 async function call(path,method='GET',data){
+ // No backend configured: fail fast instead of fetching a relative
+ // path against the app scheme (Capacitor answers unknown paths with
+ // index.html, which used to look like a successful empty response).
+ if(!API_BASE)throw Object.assign(new Error('Backend not configured'),{status:0});
  const headers={...(data?{'content-type':'application/json'}:{}),...(TOKEN?{authorization:'Bearer '+TOKEN}:{})};
  const r=await fetch(API_BASE+path,{method,headers,body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(15000)});
  const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Request failed'),{status:r.status});return j;
