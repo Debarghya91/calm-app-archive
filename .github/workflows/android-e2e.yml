@@ -93,13 +93,13 @@ jobs:
             appium.log
             appium-server.out
           if-no-files-found: warn
-          - name: Upload logcat
+      - name: Upload logcat
         uses: actions/upload-artifact@v4
         if: always()
         with:
-        name: android-e2e-logcat
-        path: logcat.txt
-        if-no-files-found: warn
+          name: android-e2e-logcat
+          path: logcat.txt
+          if-no-files-found: warn
       - name: Upload tested APK
         uses: actions/upload-artifact@v4
         if: always()
