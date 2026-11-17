@@ -107,6 +107,12 @@ try {
       'appium:ensureWebviewsHavePages': true,
       'appium:adbExecTimeout': 60000,
       'appium:uiautomator2ServerLaunchTimeout': 120000,
+      // The software-rendered emulator installs APKs slowly: the
+      // uiautomator2 server install timed out at the 20000ms default
+      // (run 44063297659). Raise it, and the app-install timeout too,
+      // so the same slowness does not fail the next step.
+      'appium:uiautomator2ServerInstallTimeout': 120000,
+      'appium:androidInstallTimeout': 180000,
       // The emulator's settings service can lag behind boot_completed on
       // the slow software-rendered image; tolerate a transient failure of
       // the hidden-API-policy step instead of failing session creation.
