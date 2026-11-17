@@ -156,3 +156,33 @@ Changes are web-only (www/js/views.js, www/css/app.css); no native code changed.
   view; the old three-choice dialog is gone.
 - Web QA: 18/18 calm-flow checks and 21/21 full-regression checks pass in
   headless Chromium, zero console errors. Screenshots verified visually.
+
+## End-to-end testing in the cloud simulator (17 Nov 2026)
+
+The app was tested properly in a GitHub-hosted iPhone simulator using
+Appium: real taps through every flow, real timers (the full 70-second
+breathing cycle, no fast-forward), a real relaunch, and a JavaScript
+error trap running throughout. Result: 45/45 checks pass, zero JS
+errors (run 44077253407). Covered: home hero and tabs, calm-first
+ordering, breathing and grounding end to end, mood routing (Anxious/Low
+straight to calm), crisis dialog with helplines, discovery dialog,
+library (33 cards) and activity detail, sleep sounds with timer,
+companion chat with the offline disclosure, login form, Hindi greeting,
+journal save, dark theme, and mood/journal/language persistence across
+a relaunch. Screenshots from the run were inspected visually.
+
+Testing found and fixed two real app bugs, both in this build:
+- Offline chat: with no backend configured, the chat fetched a relative
+  /api/chat URL, Capacitor answered with the app shell (HTTP 200), and
+  the app showed a generic reply with no offline disclosure. chat.js
+  now fails fast when no API is configured, so the honest offline reply
+  renders. The same guard was added to api.js.
+- iOS console errors: native.js called StatusBar.setBackgroundColor on
+  every theme change, but that method is Android-only; iOS rejected it
+  with UNIMPLEMENTED. The call is now guarded to Android only.
+
+Android end-to-end testing is still open: the cloud emulator's WebView
+renderer dies during test setup ("Render process gone"), so no Android
+verdict exists yet. The Android app itself builds and installs; only
+the automated emulator test is blocked. Diagnosis via emulator logcat
+is in progress.
