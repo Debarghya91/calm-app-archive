@@ -59,6 +59,8 @@ jobs:
             adb devices
             echo "Emulator SDK: $(adb shell getprop ro.build.version.sdk)"
             adb shell dumpsys webviewupdate | head -n 5 || true
+            for i in $(seq 1 60); do if adb shell settings get global device_provisioned >/dev/null 2>&1; then echo "settings service ready"; break; fi; sleep 5; done
+            adb shell settings get global device_provisioned || { echo "settings service never became ready"; exit 1; }
             # Chromedriver autodownload needs the insecure feature flag;
             # safe here because the runner is ephemeral and trusted.
             # Default debug log level is kept deliberately so the first
