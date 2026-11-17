@@ -55,6 +55,17 @@ jobs:
             sleep 2
           done
           curl -sf http://127.0.0.1:4723/status > /dev/null
+      - name: Warm up Appium session (pre-build WDA)
+        run: |
+          cat > /tmp/warmup.json <<EOF
+          {"capabilities":{"alwaysMatch":{"platformName":"iOS","appium:automationName":"XCUITest","appium:udid":"$SIM_UDID","appium:app":"$PWD/build/Build/Products/Debug-iphonesimulator/App.app","appium:noReset":false,"appium:skipLogCapture":true}}}
+          EOF
+          RESP=$(curl -s --max-time 900 -X POST http://127.0.0.1:4723/session -H 'Content-Type: application/json' --data @/tmp/warmup.json || true)
+          SID=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('value',{}).get('sessionId',''))" 2>/dev/null || true)
+          if [ -z "$SID" ]; then echo "Warm-up session failed:"; echo "$RESP" | head -c 2000; exit 1; fi
+          echo "Warm-up session $SID created; deleting it"
+          curl -s -X DELETE "http://127.0.0.1:4723/session/$SID" > /dev/null
+          echo "Warm-up done: WDA pre-built, app pre-installed"
       - name: Run simulator E2E tests
         run: |
           set +e
