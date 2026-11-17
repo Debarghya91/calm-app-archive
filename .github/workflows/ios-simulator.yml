@@ -44,7 +44,7 @@ jobs:
       - name: Install Appium and XCUITest driver
         run: |
           npm install -g appium@2
-          appium driver install xcuitest
+          appium driver install xcuitest@8
       - name: Install E2E test dependencies
         run: npm install --prefix e2e webdriverio@9
       - name: Start Appium server
