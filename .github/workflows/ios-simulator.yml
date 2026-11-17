@@ -1,4 +1,4 @@
-name: iOS build (simulator, no signing)
+name: iOS build + E2E (simulator, no signing)
 
 on:
   push:
@@ -29,27 +29,46 @@ jobs:
           -derivedDataPath build
           clean build
           CODE_SIGNING_ALLOWED=NO
-      - name: Launch in simulator and screenshot
-        run: |
-          DEVICE=$(xcrun simctl list -j devices available | python3 -c "import sys,json; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for v in d.values() for x in v if x['name'].startswith('iPhone') and x['isAvailable']))")
-          echo "Using simulator $DEVICE"
-          xcrun simctl boot "$DEVICE"
-          xcrun simctl bootstatus "$DEVICE" -b
-          xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
-          xcrun simctl launch "$DEVICE" com.soulspace.wellbeing
-          sleep 12
-          mkdir -p screenshots
-          xcrun simctl io "$DEVICE" screenshot screenshots/home.png
-          sleep 8
-          xcrun simctl io "$DEVICE" screenshot screenshots/home-later.png
-          xcrun simctl terminate "$DEVICE" com.soulspace.wellbeing || true
       - name: Upload simulator app
         uses: actions/upload-artifact@v4
         with:
           name: App-simulator
           path: build/Build/Products/Debug-iphonesimulator/App.app
-      - name: Upload simulator screenshots
+      - name: Boot simulator
+        run: |
+          DEVICE=$(xcrun simctl list -j devices available | python3 -c "import sys,json; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for v in d.values() for x in v if x['name'].startswith('iPhone') and x['isAvailable']))")
+          echo "Using simulator $DEVICE"
+          echo "SIM_UDID=$DEVICE" >> "$GITHUB_ENV"
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+      - name: Install Appium and XCUITest driver
+        run: |
+          npm install -g appium@2
+          appium driver install xcuitest
+      - name: Install E2E test dependencies
+        run: npm install --prefix e2e webdriverio@9
+      - name: Start Appium server
+        run: |
+          nohup appium server --port 4723 > appium.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:4723/status > /dev/null; then echo "Appium up"; break; fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:4723/status > /dev/null
+      - name: Run simulator E2E tests
+        run: |
+          set +e
+          UDID="$SIM_UDID" APP_PATH="$PWD/build/Build/Products/Debug-iphonesimulator/App.app" SHOTS="$PWD/e2e-shots" REPORT="$PWD/e2e-report.json" node e2e/ios-appium-test.mjs
+          CODE=$?
+          mkdir -p e2e-shots
+          touch e2e-report.json appium.log
+          exit $CODE
+      - name: Upload E2E results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: simulator-screenshots
-          path: screenshots/
+          name: ios-e2e-results
+          path: |
+            e2e-shots/
+            e2e-report.json
+            appium.log
