@@ -58,7 +58,7 @@ jobs:
       - name: Warm up Appium session (pre-build WDA)
         run: |
           cat > /tmp/warmup.json <<EOF
-          {"capabilities":{"alwaysMatch":{"platformName":"iOS","appium:automationName":"XCUITest","appium:udid":"$SIM_UDID","appium:app":"$PWD/build/Build/Products/Debug-iphonesimulator/App.app","appium:noReset":false,"appium:skipLogCapture":true,"appium:simulatorStartupTimeout":300000}}}
+          {"capabilities":{"alwaysMatch":{"platformName":"iOS","appium:automationName":"XCUITest","appium:udid":"$SIM_UDID","appium:app":"$PWD/build/Build/Products/Debug-iphonesimulator/App.app","appium:noReset":false,"appium:skipLogCapture":true,"appium:simulatorStartupTimeout":300000,"appium:wdaLaunchTimeout":300000}}}
           EOF
           SID=""
           for ATTEMPT in 1 2 3; do
