@@ -38,7 +38,7 @@ jobs:
         run: |
           npm install -g appium@2
           appium --version
-          appium driver install uiautomator2
+          appium driver install uiautomator2@4
           appium driver list --installed
       - name: Install test runner dependencies
         run: npm install --prefix e2e --no-audit --no-fund webdriverio@9
