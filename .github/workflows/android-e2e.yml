@@ -54,7 +54,7 @@ jobs:
           disable-animations: true
           # No hardware profile is pinned: the action's default device
           # avoids profile-name mismatches across system images.
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader -noaudio -no-boot-anim
           script: |
             adb devices
             echo "Emulator SDK: $(adb shell getprop ro.build.version.sdk)"
