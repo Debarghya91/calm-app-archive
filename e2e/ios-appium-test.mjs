@@ -30,7 +30,8 @@ try {
   driver = await remote({
     hostname: '127.0.0.1', port: 4723, path: '/',
     logLevel: 'warn',
-    connectionRetryTimeout: 300000,
+    connectionRetryTimeout: 900000,
+    connectionRetryCount: 5,
     capabilities: {
       platformName: 'iOS',
       'appium:automationName': 'XCUITest',
@@ -45,6 +46,9 @@ try {
       // remote debugger never matches the page without this wildcard.
       'appium:additionalWebviewBundleIds': ['*'],
       'appium:simulatorStartupTimeout': 300000,
+      // Skip the simctl log-stream capture: it cost ~46s of session setup
+      // and we diagnose from appium.log, screenshots and the JSON report.
+      'appium:skipLogCapture': true,
     },
   });
 
