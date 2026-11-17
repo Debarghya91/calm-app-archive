@@ -1,0 +1,59 @@
+name: Android build
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android-build.yml'
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies and sync Android
+        run: |
+          npm ci
+          npx cap sync android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Build debug APK
+        run: cd android && chmod +x gradlew && ./gradlew :app:assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SoulSpace-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+  aab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies and sync Android
+        run: |
+          npm ci
+          npx cap sync android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Build release bundle (unsigned, no signing config in repo)
+        run: cd android && chmod +x gradlew && ./gradlew :app:bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SoulSpace-release-aab-unsigned
+          path: android/app/build/outputs/bundle/release/app-release.aab
