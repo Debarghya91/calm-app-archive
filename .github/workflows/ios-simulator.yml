@@ -1,11 +1,9 @@
 name: iOS build + E2E (simulator, no signing)
 
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 
 jobs:
   build:
@@ -75,18 +73,20 @@ jobs:
           echo "Warm-up session $SID created; deleting it"
           curl -s -X DELETE "http://127.0.0.1:4723/session/$SID" > /dev/null
           echo "Warm-up done: WDA pre-built, app pre-installed"
-      - name: Run E2E tests
+      - name: Run simulator E2E tests
         run: |
-          cd e2e && npx wdio run wdio.ios.conf.ts
-      - name: Upload Appium log
+          set +e
+          UDID="$SIM_UDID" APP_PATH="$PWD/build/Build/Products/Debug-iphonesimulator/App.app" SHOTS="$PWD/e2e-shots" REPORT="$PWD/e2e-report.json" node e2e/ios-appium-test.mjs
+          CODE=$?
+          mkdir -p e2e-shots
+          touch e2e-report.json appium.log
+          exit $CODE
+      - name: Upload E2E results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: appium-log
-          path: appium.log
-      - name: Upload E2E logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-logs
-          path: e2e/logs
+          name: ios-e2e-results
+          path: |
+            e2e-shots/
+            e2e-report.json
+            appium.log
