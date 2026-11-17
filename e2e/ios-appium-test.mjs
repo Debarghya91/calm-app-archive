@@ -46,6 +46,7 @@ try {
       // remote debugger never matches the page without this wildcard.
       'appium:additionalWebviewBundleIds': ['*'],
       'appium:simulatorStartupTimeout': 300000,
+      'appium:wdaLaunchTimeout': 300000,
       // Skip the simctl log-stream capture: it cost ~46s of session setup
       // and we diagnose from appium.log, screenshots and the JSON report.
       'appium:skipLogCapture': true,
